@@ -4,7 +4,7 @@ FROM php:8.2-apache
 # ติดตั้ง extension ที่ Laravel ต้องใช้
 RUN apt-get update && apt-get install -y \
     git curl libpng-dev libonig-dev libxml2-dev zip unzip libpq-dev \
-    && docker-php-ext-install pdo pdo_pgsql mbstring exif pcntl bcmath gd
+    && docker-php-ext-install pdo pdo_pgsql mbstring exif pcntl bcmath gd opcache
 
 RUN pecl install redis \
     && docker-php-ext-enable redis
@@ -33,6 +33,7 @@ RUN mkdir -p storage/framework/cache/data storage/framework/sessions storage/fra
     && chmod -R ug+rwx storage bootstrap/cache
 
 COPY docker/apache-start.sh /usr/local/bin/apache-start.sh
+COPY docker/php/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
 RUN chmod +x /usr/local/bin/apache-start.sh
 
 EXPOSE 80
