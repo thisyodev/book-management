@@ -82,6 +82,12 @@ return [
         ],
 
         'error_daily' => [
+            'driver' => 'stack',
+            'channels' => ['error_daily_file', 'stderr'],
+            'ignore_exceptions' => false,
+        ],
+
+        'error_daily_file' => [
             'driver' => 'daily',
             'path' => storage_path('logs/error.log'),
             'level' => 'error',
