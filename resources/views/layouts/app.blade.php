@@ -4,6 +4,10 @@
 <head>
     <title>Book App</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
     <!-- Bootstrap CSS (CDN) -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Custom Bookstore CSS -->
@@ -72,22 +76,16 @@
             const navList = document.querySelector('.navbar-nav.ms-auto');
             if (!navList) return;
 
-            fetch('/api/me', {
-                headers: {
-                    'Authorization': 'Bearer ' + token
+            const cachedUser = (() => {
+                try {
+                    return JSON.parse(localStorage.getItem('api_user') || 'null');
+                } catch (err) {
+                    return null;
                 }
-            }).then(async res => {
-                if (!res.ok) {
-                    if (res.status === 401) {
-                        // token invalid -> remove
-                        localStorage.removeItem('api_token');
-                    }
-                    return;
-                }
-                const user = await res.json().catch(() => null);
-                if (!user) return;
+            })();
 
-                // build client-side profile dropdown
+            function renderUserNav(user) {
+                if (!user) return;
                 navList.innerHTML = `
                     <li class="nav-item dropdown">
                         <a id="clientNavbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -113,11 +111,35 @@
                             }).catch(() => {});
                         } catch (err) {}
                         localStorage.removeItem('api_token');
-                        window.location.reload();
+                        localStorage.removeItem('api_user');
+                        window.location.href = '/book';
                     });
                 }
+            }
+
+            if (cachedUser) {
+                renderUserNav(cachedUser);
+            }
+
+            fetch('/api/me', {
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                }
+            }).then(async res => {
+                if (!res.ok) {
+                    if (res.status === 401) {
+                        localStorage.removeItem('api_token');
+                        localStorage.removeItem('api_user');
+                    }
+                    return;
+                }
+                const user = await res.json().catch(() => null);
+                if (!user) return;
+                localStorage.setItem('api_user', JSON.stringify(user));
+                renderUserNav(user);
             }).catch(() => {
                 localStorage.removeItem('api_token');
+                localStorage.removeItem('api_user');
             });
 
             function escapeHtml(unsafe) {

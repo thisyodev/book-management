@@ -41,9 +41,11 @@
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>Books Library</h2>
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addBookModal">
+        <button type="button" class="btn btn-primary d-none" data-auth-only data-bs-toggle="modal"
+            data-bs-target="#addBookModal">
             + Add Book
         </button>
+        <a class="btn btn-primary" href="{{ route('login') }}" data-guest-only>Login to Add</a>
     </div>
 
     @if (session('success'))
@@ -56,84 +58,86 @@
     <div id="alertContainer"></div>
 
     <!-- Search & Filter Controls -->
-    <div class="card mb-4" style="border: none; background: #f8f9fa; padding: 1.5rem; border-radius: 8px;">
-        <form method="GET" action="{{ route('books.index') }}" class="row g-3">
-            <div class="col-md-5">
-                <input type="text" name="search" class="form-control" value="{{ $search }}"
-                    placeholder="🔍 Search by title, author, or genre..."
-                    style="border-radius: 8px; border: 2px solid #e74c3c;">
+    <div class="search-filter-panel mb-4">
+        <form method="GET" action="{{ route('books.index') }}" class="search-filter-form">
+            <div class="search-block">
+                <label class="filter-label-inline" for="searchInput">Search</label>
+                <div class="search-field">
+                    <span class="search-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"></circle>
+                            <path d="M20 20L16.65 16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                            </path>
+                        </svg>
+                    </span>
+                    <input type="text" id="searchInput" name="search" class="form-control search-input"
+                        value="{{ $search }}" placeholder="Search by title, author, or genre...">
+                </div>
             </div>
-            <div class="col-md-3">
-                <select name="sort" class="form-select" style="border-radius: 8px; border: 2px solid #2c3e50;"
-                    onchange="this.form.submit()">
-                    <option value="title" {{ $sort === 'title' ? 'selected' : '' }}>Sort by Title</option>
-                    <option value="author" {{ $sort === 'author' ? 'selected' : '' }}>Sort by Author</option>
-                    <option value="published_year" {{ $sort === 'published_year' ? 'selected' : '' }}>Sort by Year</option>
-                </select>
-            </div>
-            <div class="col-md-2">
-                <select name="direction" class="form-select" style="border-radius: 8px; border: 2px solid #2c3e50;"
-                    onchange="this.form.submit()">
-                    <option value="asc" {{ $direction === 'asc' ? 'selected' : '' }}>A → Z</option>
-                    <option value="desc" {{ $direction === 'desc' ? 'selected' : '' }}>Z → A</option>
-                </select>
-            </div>
-            <div class="col-md-2">
-                <button type="submit" class="btn btn-primary w-100">Search</button>
+            <div class="filter-actions">
+                <div class="filter-inline">
+                    <label class="filter-label-inline" for="sortSelect">Sort</label>
+                    <select id="sortSelect" name="sort" class="form-select filter-select-inline"
+                        onchange="this.form.submit()">
+                        <option value="title" {{ $sort === 'title' ? 'selected' : '' }}>Title</option>
+                        <option value="author" {{ $sort === 'author' ? 'selected' : '' }}>Author</option>
+                        <option value="published_year" {{ $sort === 'published_year' ? 'selected' : '' }}>Year</option>
+                    </select>
+                </div>
+                <div class="filter-inline">
+                    <label class="filter-label-inline" for="directionSelect">Order</label>
+                    <select id="directionSelect" name="direction" class="form-select filter-select-inline"
+                        onchange="this.form.submit()">
+                        <option value="asc" {{ $direction === 'asc' ? 'selected' : '' }}>A → Z</option>
+                        <option value="desc" {{ $direction === 'desc' ? 'selected' : '' }}>Z → A</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary filter-submit">Apply</button>
             </div>
         </form>
     </div>
 
-    <div class="table-responsive">
-        <table class="table table-striped table-hover align-middle">
-            <thead class="table-dark">
-                <tr>
-                    <th>#</th>
-                    <th>Title</th>
-                    <th>Author</th>
-                    <th>Year</th>
-                    <th>Genre</th>
-                    <th class="text-end">Actions</th>
-                </tr>
-            </thead>
-            <tbody id="booksTableBody">
-                @forelse ($books as $key => $book)
-                    <tr data-book-id="{{ $book->id }}">
-                        <td>{{ $key + 1 }}</td>
-                        <td class="fw-bold">{{ $book->title }}</td>
-                        <td>{{ $book->author }}</td>
-                        <td>{{ $book->published_year ?? '-' }}</td>
-                        <td>
+    <div class="book-cards-container" id="booksTableBody">
+        @forelse ($books as $key => $book)
+            <div class="book-card" data-book-id="{{ $book->id }}" data-title="{{ $book->title }}"
+                data-author="{{ $book->author }}" data-year="{{ $book->published_year ?? '' }}"
+                data-genre="{{ $book->genre ?? '' }}">
+                <div class="book-card-body">
+                    <div class="book-title">{{ $book->title }}</div>
+                    <div class="book-author">{{ $book->author }}</div>
+                    <div class="book-meta">
+                        <span>Year</span>
+                        <span>{{ $book->published_year ?? '-' }}</span>
+                    </div>
+                    <div class="book-meta">
+                        <span>Genre</span>
+                        <span>
                             @if ($book->genre)
                                 <span class="badge bg-warning text-dark">{{ $book->genre }}</span>
                             @else
                                 <span class="text-muted">-</span>
                             @endif
-                        </td>
-                        <td class="text-end">
-                            <button type="button" class="btn btn-sm btn-outline-secondary btn-edit"
-                                data-book-id="{{ $book->id }}">
-                                Edit
-                            </button>
-                            <button type="button" class="btn btn-sm btn-outline-danger btn-delete"
-                                data-book-id="{{ $book->id }}" data-title="{{ $book->title }}">
-                                Delete
-                            </button>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="6" class="text-center py-5">
-                            <div class="empty-state">
-                                <div class="empty-state-icon">📚</div>
-                                <h3 class="empty-state-title">No Books Found</h3>
-                                <a href="{{ route('books.index') }}" class="empty-state-link">← Clear Filters</a>
-                            </div>
-                        </td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
+                        </span>
+                    </div>
+                    <div class="mt-3 d-flex gap-2 d-none" data-auth-only>
+                        <button type="button" class="btn btn-sm btn-outline-secondary btn-edit" data-auth-only
+                            data-book-id="{{ $book->id }}">
+                            Edit
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-danger btn-delete" data-auth-only
+                            data-book-id="{{ $book->id }}" data-title="{{ $book->title }}">
+                            Delete
+                        </button>
+                    </div>
+                </div>
+            </div>
+        @empty
+            <div class="empty-state w-100 text-center py-5">
+                <div class="empty-state-icon">📚</div>
+                <h3 class="empty-state-title">No Books Found</h3>
+                <a href="{{ route('books.index') }}" class="empty-state-link">← Clear Filters</a>
+            </div>
+        @endforelse
     </div>
 
     <!-- Pagination -->
@@ -253,9 +257,43 @@
         document.addEventListener('DOMContentLoaded', function() {
             hideSpinner();
 
-            const addModal = new bootstrap.Modal(document.getElementById('addBookModal'));
-            const editModal = new bootstrap.Modal(document.getElementById('editBookModal'));
-            const deleteModal = new bootstrap.Modal(document.getElementById('deleteBookModal'));
+            function setAuthUi(isAuthed) {
+                document.querySelectorAll('[data-auth-only]').forEach(el => {
+                    el.classList.toggle('d-none', !isAuthed);
+                });
+                document.querySelectorAll('[data-guest-only]').forEach(el => {
+                    el.classList.toggle('d-none', isAuthed);
+                });
+            }
+
+            setAuthUi(false);
+            const apiToken = localStorage.getItem('api_token');
+            if (apiToken) {
+                fetch('/api/me', {
+                    headers: {
+                        'Authorization': 'Bearer ' + apiToken
+                    }
+                }).then(res => {
+                    if (!res.ok) {
+                        if (res.status === 401) {
+                            localStorage.removeItem('api_token');
+                            localStorage.removeItem('api_user');
+                        }
+                        setAuthUi(false);
+                        return;
+                    }
+                    setAuthUi(true);
+                }).catch(() => {
+                    setAuthUi(false);
+                });
+            }
+
+            const addModalEl = document.getElementById('addBookModal');
+            const editModalEl = document.getElementById('editBookModal');
+            const deleteModalEl = document.getElementById('deleteBookModal');
+            const addModal = addModalEl ? new bootstrap.Modal(addModalEl) : null;
+            const editModal = editModalEl ? new bootstrap.Modal(editModalEl) : null;
+            const deleteModal = deleteModalEl ? new bootstrap.Modal(deleteModalEl) : null;
             const saveAddBtn = document.getElementById('saveAddBtn');
             const saveEditBtn = document.getElementById('saveEditBtn');
             const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
@@ -273,102 +311,104 @@
             }
 
             // Add book button handler — เรียกผ่าน API
-            saveAddBtn.addEventListener('click', async function() {
-                const data = {
-                    title: document.getElementById('addTitle').value,
-                    author: document.getElementById('addAuthor').value,
-                    published_year: document.getElementById('addYear').value || null,
-                    genre: document.getElementById('addGenre').value || null,
-                };
+            if (saveAddBtn) {
+                saveAddBtn.addEventListener('click', async function() {
+                    const data = {
+                        title: document.getElementById('addTitle').value,
+                        author: document.getElementById('addAuthor').value,
+                        published_year: document.getElementById('addYear').value || null,
+                        genre: document.getElementById('addGenre').value || null,
+                    };
 
-                if (!data.title || !data.author) {
-                    showAlert('Title and Author are required!', 'warning');
-                    return;
-                }
-
-                showSpinner();
-                try {
-                    const response = await fetch(`{{ url('/api/books') }}`, {
-                        method: 'POST',
-                        headers: getApiHeaders('POST'),
-                        body: JSON.stringify(data)
-                    });
-
-                    const json = await response.json().catch(() => ({}));
-                    if (!response.ok) {
-                        if (response.status === 401) {
-                            throw new Error('Please log in to add books.');
-                        }
-                        throw new Error(json.message || 'Failed to add book');
+                    if (!data.title || !data.author) {
+                        showAlert('Title and Author are required!', 'warning');
+                        return;
                     }
 
-                    showAlert('Book added successfully!', 'success');
-                    setTimeout(() => window.location.reload(), 1500);
-                } catch (error) {
-                    hideSpinner();
-                    showAlert('Error: ' + error.message, 'danger');
-                }
-            });
+                    showSpinner();
+                    try {
+                        const response = await fetch(`{{ url('/api/books') }}`, {
+                            method: 'POST',
+                            headers: getApiHeaders('POST'),
+                            body: JSON.stringify(data)
+                        });
+
+                        const json = await response.json().catch(() => ({}));
+                        if (!response.ok) {
+                            if (response.status === 401) {
+                                throw new Error('Please log in to add books.');
+                            }
+                            throw new Error(json.message || 'Failed to add book');
+                        }
+
+                        showAlert('Book added successfully!', 'success');
+                        setTimeout(() => window.location.reload(), 1500);
+                    } catch (error) {
+                        hideSpinner();
+                        showAlert('Error: ' + error.message, 'danger');
+                    }
+                });
+            }
 
             // Edit book button handlers
             document.querySelectorAll('.btn-edit').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const bookId = this.dataset.bookId;
-                    const row = document.querySelector(`tr[data-book-id="${bookId}"]`);
+                    const card = document.querySelector(`.book-card[data-book-id="${bookId}"]`);
 
-                    if (row) {
-                        const cells = row.querySelectorAll('td');
+                    if (card) {
                         document.getElementById('editBookId').value = bookId;
-                        document.getElementById('editTitle').value = cells[1].textContent.trim();
-                        document.getElementById('editAuthor').value = cells[2].textContent.trim();
-                        document.getElementById('editYear').value = cells[3].textContent.trim() ===
-                            '-' ? '' : cells[3].textContent.trim();
-                        const genreCell = cells[4].textContent.trim();
-                        document.getElementById('editGenre').value = genreCell === '-' ? '' :
-                            genreCell;
-                        editModal.show();
+                        document.getElementById('editTitle').value = card.dataset.title || '';
+                        document.getElementById('editAuthor').value = card.dataset.author || '';
+                        document.getElementById('editYear').value = card.dataset.year || '';
+                        document.getElementById('editGenre').value = card.dataset.genre || '';
+                        if (editModal) {
+                            editModal.show();
+                        }
                     }
                 });
             });
 
             // Save edited book — เรียกผ่าน API
-            saveEditBtn.addEventListener('click', async function() {
-                const bookId = document.getElementById('editBookId').value;
-                const data = {
-                    title: document.getElementById('editTitle').value,
-                    author: document.getElementById('editAuthor').value,
-                    published_year: document.getElementById('editYear').value || null,
-                    genre: document.getElementById('editGenre').value || null,
-                };
+            if (saveEditBtn) {
+                saveEditBtn.addEventListener('click', async function() {
+                    const bookId = document.getElementById('editBookId').value;
+                    const data = {
+                        title: document.getElementById('editTitle').value,
+                        author: document.getElementById('editAuthor').value,
+                        published_year: document.getElementById('editYear').value || null,
+                        genre: document.getElementById('editGenre').value || null,
+                    };
 
-                if (!data.title || !data.author) {
-                    showAlert('Title and Author are required!', 'warning');
-                    return;
-                }
-
-                showSpinner();
-                try {
-                    const response = await fetch(`{{ url('/api/books') }}/${bookId}`, {
-                        method: 'PUT',
-                        headers: getApiHeaders('PUT'),
-                        body: JSON.stringify(data)
-                    });
-
-                    const json = await response.json().catch(() => ({}));
-                    if (!response.ok) {
-                        if (response.status === 401) {
-                            throw new Error('Please log in to update books.');
-                        }
-                        throw new Error(json.message || 'Failed to update book');
+                    if (!data.title || !data.author) {
+                        showAlert('Title and Author are required!', 'warning');
+                        return;
                     }
 
-                    showAlert('Book updated successfully!', 'success');
-                    setTimeout(() => window.location.reload(), 1500);
-                } catch (error) {
-                    hideSpinner();
-                    showAlert('Error: ' + error.message, 'danger');
-                }
-            });
+                    showSpinner();
+                    try {
+                        const response = await fetch(`{{ url('/api/books') }}/${bookId}`, {
+                            method: 'PUT',
+                            headers: getApiHeaders('PUT'),
+                            body: JSON.stringify(data)
+                        });
+
+                        const json = await response.json().catch(() => ({}));
+                        if (!response.ok) {
+                            if (response.status === 401) {
+                                throw new Error('Please log in to update books.');
+                            }
+                            throw new Error(json.message || 'Failed to update book');
+                        }
+
+                        showAlert('Book updated successfully!', 'success');
+                        setTimeout(() => window.location.reload(), 1500);
+                    } catch (error) {
+                        hideSpinner();
+                        showAlert('Error: ' + error.message, 'danger');
+                    }
+                });
+            }
 
             // Delete book button handlers
             document.querySelectorAll('.btn-delete').forEach(btn => {
@@ -376,34 +416,39 @@
                     currentDeleteBookId = this.dataset.bookId;
                     const title = this.dataset.title;
                     document.getElementById('deleteBookTitle').textContent = title;
-                    deleteModal.show();
+                    if (deleteModal) {
+                        deleteModal.show();
+                    }
                 });
             });
 
             // Confirm delete — เรียกผ่าน API
-            confirmDeleteBtn.addEventListener('click', async function() {
-                showSpinner();
-                try {
-                    const response = await fetch(`{{ url('/api/books') }}/${currentDeleteBookId}`, {
-                        method: 'DELETE',
-                        headers: getApiHeaders('DELETE')
-                    });
+            if (confirmDeleteBtn) {
+                confirmDeleteBtn.addEventListener('click', async function() {
+                    showSpinner();
+                    try {
+                        const response = await fetch(
+                            `{{ url('/api/books') }}/${currentDeleteBookId}`, {
+                                method: 'DELETE',
+                                headers: getApiHeaders('DELETE')
+                            });
 
-                    const json = await response.json().catch(() => ({}));
-                    if (!response.ok) {
-                        if (response.status === 401) {
-                            throw new Error('Please log in to delete books.');
+                        const json = await response.json().catch(() => ({}));
+                        if (!response.ok) {
+                            if (response.status === 401) {
+                                throw new Error('Please log in to delete books.');
+                            }
+                            throw new Error(json.message || 'Failed to delete book');
                         }
-                        throw new Error(json.message || 'Failed to delete book');
-                    }
 
-                    showAlert('Book deleted successfully!', 'success');
-                    setTimeout(() => window.location.reload(), 1500);
-                } catch (error) {
-                    hideSpinner();
-                    showAlert('Error: ' + error.message, 'danger');
-                }
-            });
+                        showAlert('Book deleted successfully!', 'success');
+                        setTimeout(() => window.location.reload(), 1500);
+                    } catch (error) {
+                        hideSpinner();
+                        showAlert('Error: ' + error.message, 'danger');
+                    }
+                });
+            }
 
             function showAlert(message, type) {
                 const alert = document.createElement('div');

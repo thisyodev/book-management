@@ -5,26 +5,27 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Services\BookService;
 use Illuminate\Http\Request;
+use OpenApi\Annotations as OA;
 
 class BookController extends Controller
 {
     public function __construct(private BookService $bookService) {}
 
-/**
- * @OA\Get(
- *     path="/api/v1/books",
- *     summary="Get list of books",
- *     tags={"Books"},
- *     @OA\Parameter(name="search", in="query", required=false),
- *     @OA\Parameter(name="sort", in="query", required=false),
- *     @OA\Parameter(name="direction", in="query", required=false),
- *     @OA\Parameter(name="page", in="query", required=false),
- *     @OA\Response(
- *         response=200,
- *         description="Success"
- *     )
- * )
- */
+    /**
+     * @OA\Get(
+     *     path="/api/books",
+     *     summary="Get list of books",
+     *     tags={"Books"},
+     *     @OA\Parameter(name="search", in="query", required=false, @OA\Schema(type="string")),
+     *     @OA\Parameter(name="sort", in="query", required=false, @OA\Schema(type="string")),
+     *     @OA\Parameter(name="direction", in="query", required=false, @OA\Schema(type="string")),
+     *     @OA\Parameter(name="page", in="query", required=false, @OA\Schema(type="integer")),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success"
+     *     )
+     * )
+     */
     public function index(Request $request)
     {
         $paginator = $this->bookService->getBooksPaginated($request);
@@ -48,6 +49,16 @@ class BookController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/books/{id}",
+     *     summary="Get book by ID",
+     *     tags={"Books"},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Success"),
+     *     @OA\Response(response=404, description="Not found")
+     * )
+     */
     public function show($id)
     {
         return response()->json([
@@ -56,6 +67,27 @@ class BookController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/books",
+     *     summary="Create a book",
+     *     tags={"Books"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"title","author"},
+     *             @OA\Property(property="title", type="string", example="Dune"),
+     *             @OA\Property(property="author", type="string", example="Frank Herbert"),
+     *             @OA\Property(property="published_year", type="integer", example=1965),
+     *             @OA\Property(property="genre", type="string", example="Sci-Fi")
+     *         )
+     *     ),
+     *     @OA\Response(response=201, description="Created"),
+     *     @OA\Response(response=401, description="Unauthorized"),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
+     */
     public function store(Request $request)
     {
         $request->validate([
@@ -73,6 +105,27 @@ class BookController extends Controller
         ], 201);
     }
 
+    /**
+     * @OA\Put(
+     *     path="/api/books/{id}",
+     *     summary="Update a book",
+     *     tags={"Books"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="title", type="string", example="Dune"),
+     *             @OA\Property(property="author", type="string", example="Frank Herbert"),
+     *             @OA\Property(property="published_year", type="integer", example=1965),
+     *             @OA\Property(property="genre", type="string", example="Sci-Fi")
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Updated"),
+     *     @OA\Response(response=401, description="Unauthorized"),
+     *     @OA\Response(response=422, description="Validation error")
+     * )
+     */
     public function update(Request $request, $id)
     {
         $request->validate([
@@ -90,6 +143,17 @@ class BookController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Delete(
+     *     path="/api/books/{id}",
+     *     summary="Delete a book",
+     *     tags={"Books"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Deleted"),
+     *     @OA\Response(response=401, description="Unauthorized")
+     * )
+     */
     public function destroy($id)
     {
         $book = $this->bookService->deleteBook($id);
