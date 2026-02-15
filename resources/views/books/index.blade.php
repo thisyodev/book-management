@@ -56,6 +56,12 @@
         </div>
     @endif
 
+    @if (!empty($dbError))
+        <div class="alert alert-danger" role="alert">
+            {{ $dbError }}
+        </div>
+    @endif
+
     <div id="alertContainer"></div>
 
     <!-- Search & Filter Controls -->

@@ -21,7 +21,7 @@ php artisan view:clear || true
 php artisan package:discover --ansi
 
 if [ "${RUN_MIGRATIONS:-true}" = "true" ]; then
-  php artisan migrate --force || true
+  php artisan migrate --force
 fi
 
 php artisan config:cache || true
