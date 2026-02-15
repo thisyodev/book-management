@@ -1,45 +1,32 @@
-FROM php:8.3-fpm-alpine
+# ใช้ PHP 8.2 + Apache
+FROM php:8.2-apache
 
-RUN apk add --no-cache \
-    nginx \
-    supervisor \
-    bash \
-    curl \
-    git \
-    unzip \
-    libpq-dev \
-    icu-dev \
-    oniguruma-dev \
-    libzip-dev \
-    gettext
+# ติดตั้ง extension ที่ Laravel ต้องใช้
+RUN apt-get update && apt-get install -y \
+    git curl libpng-dev libonig-dev libxml2-dev zip unzip \
+    && docker-php-ext-install pdo pdo_pgsql mbstring exif pcntl bcmath gd
 
-RUN docker-php-ext-install \
-    pdo \
-    pdo_pgsql \
-    bcmath \
-    mbstring \
-    intl \
-    opcache
+# เปิด Apache mod_rewrite
+RUN a2enmod rewrite
 
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+# ตั้งค่า document root ไปที่ public
+ENV APACHE_DOCUMENT_ROOT /var/www/html/public
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
+RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
+# Copy project
 WORKDIR /var/www/html
-
-COPY composer.json composer.lock ./
-RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --no-scripts
-
 COPY . .
 
-RUN mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache \
-    && chown -R www-data:www-data /var/www/html \
-    && chmod -R ug+rwx storage bootstrap/cache
+# ติดตั้ง Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-COPY docker/nginx/default.conf.template /etc/nginx/http.d/default.conf.template
-COPY docker/supervisor/supervisord.conf /etc/supervisord.conf
-COPY docker/start.sh /usr/local/bin/start.sh
-RUN chmod +x /usr/local/bin/start.sh
+# Install dependencies
+RUN composer install --optimize-autoloader --no-dev
 
-ENV PORT=10000
-EXPOSE 10000
+# Permission
+RUN chown -R www-data:www-data storage bootstrap/cache
 
-CMD ["/usr/local/bin/start.sh"]
+EXPOSE 80
+
+CMD ["apache2-foreground"]
