@@ -99,8 +99,7 @@ storage/api-docs/api-docs.json
 โปรเจกต์นี้เตรียมไฟล์ deploy ไว้แล้ว:
 - `Dockerfile`
 - `render.yaml`
-- `docker/start.sh`
-- `docker/nginx/default.conf.template`
+- `docker/apache-start.sh`
 
 ### ขั้นตอน
 
@@ -117,9 +116,26 @@ storage/api-docs/api-docs.json
 - `JWT_SECRET` = secret สำหรับ jwt-auth
 - `DB_URL` = Supabase Postgres connection string (ต้องมี `sslmode=require`)
 
+ค่าแนะนำที่ใช้จริงใน production:
+
+```env
+APP_ENV=production
+APP_DEBUG=false
+DB_CONNECTION=pgsql
+DB_SSLMODE=require
+DB_SCHEMA=laravel
+SESSION_DRIVER=file
+CACHE_STORE=file
+QUEUE_CONNECTION=sync
+RUN_MIGRATIONS=false
+API_BOOKS_CACHE_TTL=60
+API_LOG_SUCCESS=false
+```
+
 4) Deploy
 - ระบบจะ build image จาก Dockerfile
-- ตอน start จะรัน migration อัตโนมัติ (`RUN_MIGRATIONS=true`)
+- ตอน start **จะไม่**รัน migration โดยค่าเริ่มต้น (`RUN_MIGRATIONS=false`)
+- ถ้าต้องการรัน migration ให้เปลี่ยนเป็น `RUN_MIGRATIONS=true`
 
 ### ตัวอย่าง DATABASE_URL (Supabase)
 
@@ -134,7 +150,12 @@ API_BOOKS_CACHE_TTL=60
 API_LOG_SUCCESS=false
 ```
 
-หากเพิ่ม Redis ในอนาคต แนะนำเปลี่ยน:
+สถานะปัจจุบัน:
+
+- โปรเจกต์นี้ใช้ `CACHE_STORE=file` เป็นหลักใน production
+- Redis ถูกติดตั้งและตั้งค่าไว้ใน container เพื่อรองรับอนาคต แต่ยังไม่ใช้งานเป็น default
+
+หากต้องการสลับไปใช้ Redis ภายหลัง:
 
 ```env
 CACHE_STORE=redis
@@ -144,6 +165,16 @@ CACHE_STORE=redis
 
 - หากไม่ต้องการให้รัน migration ตอน start ให้ตั้ง `RUN_MIGRATIONS=false`
 - หลังเปลี่ยนค่า env สำคัญ แนะนำ Manual Deploy ใหม่อีกครั้ง
+- ถ้าเปลี่ยนค่า cache/session แล้วเจอ error ให้ deploy ใหม่เพื่อให้ startup script สร้างโฟลเดอร์ storage ครบ
+
+## Production URL
+
+- App: `https://book-management-8sxg.onrender.com/book`
+- Swagger UI: `https://book-management-8sxg.onrender.com/api/documentation`
+
+หมายเหตุ Swagger:
+- เอกสารรองรับ HTTPS แล้ว (ลดปัญหา Mixed Content)
+- ถ้า docs ยังไม่อัปเดต ให้รัน `php artisan l5-swagger:generate`
 
 ## Logging
 
