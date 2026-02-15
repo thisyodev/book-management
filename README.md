@@ -11,7 +11,6 @@
 - Laravel 12
 - JWT Auth (`tymon/jwt-auth`)
 - Swagger (`darkaonline/l5-swagger`)
-- Vite + Tailwind + Bootstrap
 
 ## เริ่มต้นใช้งาน (Local Setup)
 
@@ -19,7 +18,6 @@
 
 ```bash
 composer install
-npm install
 ```
 
 2) ตั้งค่า environment
@@ -47,18 +45,6 @@ php artisan db:seed
 
 ```bash
 php artisan serve
-```
-
-รัน frontend assets (ระหว่างพัฒนา):
-
-```bash
-npm run dev
-```
-
-หรือ build สำหรับใช้งานจริง:
-
-```bash
-npm run build
 ```
 
 ## เส้นทางหลักของระบบ
@@ -107,6 +93,44 @@ storage/api-docs/api-docs.json
 หมายเหตุ:
 - ถ้าแก้ annotation แล้วหน้า Swagger ยังไม่อัปเดต ให้รัน `php artisan l5-swagger:generate` ซ้ำ
 - หากมี cache config ให้เคลียร์ด้วย `php artisan config:clear`
+
+## Deploy บน Render (Docker) + Supabase
+
+โปรเจกต์นี้เตรียมไฟล์ deploy ไว้แล้ว:
+- `Dockerfile`
+- `render.yaml`
+- `docker/start.sh`
+- `docker/nginx/default.conf.template`
+
+### ขั้นตอน
+
+1) Push โค้ดขึ้น GitHub
+
+2) ไปที่ Render Dashboard > New > Blueprint
+- เลือก repo ของโปรเจกต์นี้
+- Render จะอ่านค่าจาก `render.yaml`
+
+3) ตั้งค่า Environment Variables ที่เป็น `sync: false`
+- `APP_URL` = URL ของ service บน Render
+- `ASSET_URL` = URL เดียวกับ `APP_URL`
+- `APP_KEY` = ผลลัพธ์จาก `php artisan key:generate --show`
+- `JWT_SECRET` = secret สำหรับ jwt-auth
+- `DATABASE_URL` = Supabase Postgres connection string (ต้องมี `sslmode=require`)
+
+4) Deploy
+- ระบบจะ build image จาก Dockerfile
+- ตอน start จะรัน migration อัตโนมัติ (`RUN_MIGRATIONS=true`)
+
+### ตัวอย่าง DATABASE_URL (Supabase)
+
+```text
+postgresql://USER:PASSWORD@HOST:5432/postgres?sslmode=require
+```
+
+### หมายเหตุ
+
+- หากไม่ต้องการให้รัน migration ตอน start ให้ตั้ง `RUN_MIGRATIONS=false`
+- หลังเปลี่ยนค่า env สำคัญ แนะนำ Manual Deploy ใหม่อีกครั้ง
 
 ## Logging
 

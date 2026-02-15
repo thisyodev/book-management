@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: book-management
+    env: docker
+    plan: free
+    autoDeploy: true
+    healthCheckPath: /up
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_URL
+        sync: false
+      - key: ASSET_URL
+        sync: false
+      - key: APP_KEY
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: LOG_CHANNEL
+        value: stack
+      - key: LOG_DAILY_DAYS
+        value: "14"
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DATABASE_URL
+        sync: false
+      - key: DB_SSLMODE
+        value: require
+      - key: RUN_MIGRATIONS
+        value: "true"
