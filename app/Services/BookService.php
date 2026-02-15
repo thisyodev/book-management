@@ -19,7 +19,7 @@ class BookService
      */
     public function getBooksPaginated(Request $request, int $perPage = 10): LengthAwarePaginator
     {
-        $query = Book::query()->latest();
+        $query = Book::query()->select(['id', 'title', 'author', 'published_year', 'genre', 'created_at']);
 
         if ($request->filled('search')) {
             $search = $request->input('search');
@@ -30,8 +30,17 @@ class BookService
             });
         }
 
+        $allowedSorts = ['title', 'author', 'published_year', 'created_at'];
         $sort = $request->input('sort', 'title');
-        $direction = $request->input('direction', 'asc');
+        if (!in_array($sort, $allowedSorts, true)) {
+            $sort = 'title';
+        }
+
+        $direction = strtolower($request->input('direction', 'asc'));
+        if (!in_array($direction, ['asc', 'desc'], true)) {
+            $direction = 'asc';
+        }
+
         $query->orderBy($sort, $direction);
 
         return $query->paginate($perPage)->appends($request->query());

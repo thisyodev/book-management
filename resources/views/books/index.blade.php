@@ -309,6 +309,7 @@
             const saveEditBtn = document.getElementById('saveEditBtn');
             const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
             const alertContainer = document.getElementById('alertContainer');
+            const apiBooksBase = '/api/books';
 
             function getApiHeaders(method, body = null) {
                 const headers = {
@@ -338,7 +339,7 @@
 
                     showSpinner();
                     try {
-                        const response = await fetch(`{{ url('/api/books') }}`, {
+                        const response = await fetch(apiBooksBase, {
                             method: 'POST',
                             headers: getApiHeaders('POST'),
                             body: JSON.stringify(data)
@@ -398,7 +399,7 @@
 
                     showSpinner();
                     try {
-                        const response = await fetch(`{{ url('/api/books') }}/${bookId}`, {
+                        const response = await fetch(`${apiBooksBase}/${bookId}`, {
                             method: 'PUT',
                             headers: getApiHeaders('PUT'),
                             body: JSON.stringify(data)
@@ -439,7 +440,7 @@
                     showSpinner();
                     try {
                         const response = await fetch(
-                            `{{ url('/api/books') }}/${currentDeleteBookId}`, {
+                            `${apiBooksBase}/${currentDeleteBookId}`, {
                                 method: 'DELETE',
                                 headers: getApiHeaders('DELETE')
                             });

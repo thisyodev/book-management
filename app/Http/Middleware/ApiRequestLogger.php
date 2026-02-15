@@ -11,6 +11,10 @@ class ApiRequestLogger
 {
     public function handle(Request $request, Closure $next)
     {
+        if ($request->path() === 'up') {
+            return $next($request);
+        }
+
         $start = microtime(true);
 
         try {
@@ -40,7 +44,7 @@ class ApiRequestLogger
 
         if ($status >= 400) {
             Log::channel('error_daily')->error('api.request', $context);
-        } else {
+        } elseif (filter_var(env('API_LOG_SUCCESS', false), FILTER_VALIDATE_BOOL)) {
             Log::channel('success_daily')->info('api.request', $context);
         }
 

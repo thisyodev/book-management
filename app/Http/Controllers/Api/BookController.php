@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Services\BookService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use OpenApi\Annotations as OA;
 
 class BookController extends Controller
@@ -28,25 +29,34 @@ class BookController extends Controller
      */
     public function index(Request $request)
     {
-        $paginator = $this->bookService->getBooksPaginated($request);
-        return response()->json([
-            'status' => true,
-            'data' => $paginator->items(),
-            'meta' => [
-                'current_page' => $paginator->currentPage(),
-                'last_page' => $paginator->lastPage(),
-                'per_page' => $paginator->perPage(),
-                'total' => $paginator->total(),
-                'from' => $paginator->firstItem(),
-                'to' => $paginator->lastItem(),
-            ],
-            'links' => [
-                'first' => $paginator->url(1),
-                'last' => $paginator->url($paginator->lastPage()),
-                'prev' => $paginator->previousPageUrl(),
-                'next' => $paginator->nextPageUrl(),
-            ],
-        ]);
+        $ttl = (int) env('API_BOOKS_CACHE_TTL', 30);
+        $version = (string) Cache::get('api_books_cache_version', 'v1');
+        $cacheKey = 'api:books:' . $version . ':' . md5(http_build_query($request->query()));
+
+        $payload = Cache::remember($cacheKey, now()->addSeconds($ttl), function () use ($request) {
+            $paginator = $this->bookService->getBooksPaginated($request);
+
+            return [
+                'status' => true,
+                'data' => $paginator->items(),
+                'meta' => [
+                    'current_page' => $paginator->currentPage(),
+                    'last_page' => $paginator->lastPage(),
+                    'per_page' => $paginator->perPage(),
+                    'total' => $paginator->total(),
+                    'from' => $paginator->firstItem(),
+                    'to' => $paginator->lastItem(),
+                ],
+                'links' => [
+                    'first' => $paginator->url(1),
+                    'last' => $paginator->url($paginator->lastPage()),
+                    'prev' => $paginator->previousPageUrl(),
+                    'next' => $paginator->nextPageUrl(),
+                ],
+            ];
+        });
+
+        return response()->json($payload);
     }
 
     /**
@@ -98,6 +108,7 @@ class BookController extends Controller
         ]);
 
         $book = $this->bookService->createBook($request->all());
+        $this->bumpBooksCacheVersion();
 
         return response()->json([
             'status' => true,
@@ -136,6 +147,7 @@ class BookController extends Controller
         ]);
 
         $book = $this->bookService->updateBook($id, $request->all());
+        $this->bumpBooksCacheVersion();
 
         return response()->json([
             'status' => true,
@@ -157,10 +169,16 @@ class BookController extends Controller
     public function destroy($id)
     {
         $book = $this->bookService->deleteBook($id);
+        $this->bumpBooksCacheVersion();
 
         return response()->json([
             'status' => true,
             'message' => 'Book deleted successfully'
         ]);
+    }
+
+    private function bumpBooksCacheVersion(): void
+    {
+        Cache::forever('api_books_cache_version', (string) microtime(true));
     }
 }
