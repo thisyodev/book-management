@@ -40,6 +40,10 @@ services:
         value: file
       - key: CACHE_STORE
         value: file
+      - key: REDIS_CLIENT
+        value: phpredis
+      - key: REDIS_URL
+        sync: false
       - key: QUEUE_CONNECTION
         value: sync
       - key: RUN_MIGRATIONS

@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Services\BookService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use OpenApi\Annotations as OA;
+use Throwable;
 
 class BookController extends Controller
 {
@@ -33,7 +35,23 @@ class BookController extends Controller
         $version = (string) Cache::get('api_books_cache_version', 'v1');
         $cacheKey = 'api:books:' . $version . ':' . md5(http_build_query($request->query()));
 
-        $payload = Cache::remember($cacheKey, now()->addSeconds($ttl), function () use ($request) {
+        try {
+            $payload = Cache::remember($cacheKey, now()->addSeconds($ttl), function () use ($request) {
+                return $this->buildBooksPayload($request);
+            });
+        } catch (Throwable $exception) {
+            Log::channel('error_daily')->error('api.books.cache_unavailable', [
+                'message' => $exception->getMessage(),
+            ]);
+
+            $payload = $this->buildBooksPayload($request);
+        }
+
+        return response()->json($payload);
+    }
+
+    private function buildBooksPayload(Request $request): array
+    {
             $paginator = $this->bookService->getBooksPaginated($request);
 
             return [
@@ -54,9 +72,6 @@ class BookController extends Controller
                     'next' => $paginator->nextPageUrl(),
                 ],
             ];
-        });
-
-        return response()->json($payload);
     }
 
     /**
