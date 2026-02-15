@@ -1,60 +1,130 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Book Management
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+ระบบจัดการหนังสือ (Laravel 12) รองรับทั้ง
+- หน้าเว็บสำหรับผู้ใช้ (`/book`)
+- REST API สำหรับ Auth + Books (`/api/...`)
+- เอกสาร API ด้วย Swagger (L5 Swagger)
 
-## About Laravel
+## Tech Stack
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- PHP 8.2+
+- Laravel 12
+- JWT Auth (`tymon/jwt-auth`)
+- Swagger (`darkaonline/l5-swagger`)
+- Vite + Tailwind + Bootstrap
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## เริ่มต้นใช้งาน (Local Setup)
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+1) Clone และติดตั้ง dependency
 
-## Learning Laravel
+```bash
+composer install
+npm install
+```
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+2) ตั้งค่า environment
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+```bash
+cp .env.example .env
+php artisan key:generate
+```
 
-## Laravel Sponsors
+3) ตั้งค่าฐานข้อมูลใน `.env` แล้ว migrate
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+```bash
+php artisan migrate
+```
 
-### Premium Partners
+4) (ไม่บังคับ) seed ข้อมูลตัวอย่าง
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+```bash
+php artisan db:seed
+```
 
-## Contributing
+## การรันโปรเจกต์
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+รัน backend:
 
-## Code of Conduct
+```bash
+php artisan serve
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+รัน frontend assets (ระหว่างพัฒนา):
 
-## Security Vulnerabilities
+```bash
+npm run dev
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+หรือ build สำหรับใช้งานจริง:
 
-## License
+```bash
+npm run build
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
-# book-management
+## เส้นทางหลักของระบบ
+
+- หน้าเว็บ: `/book`
+- Login หน้าเว็บ: `/login`
+- Register หน้าเว็บ: `/register`
+
+### API Auth
+
+- `POST /api/register`
+- `POST /api/login`
+- `POST /api/logout` (ต้องมี token)
+- `GET /api/me` (ต้องมี token)
+
+### API Books
+
+- `GET /api/books`
+- `GET /api/books/{id}`
+- `POST /api/books` (ต้องมี token)
+- `PUT /api/books/{id}` (ต้องมี token)
+- `DELETE /api/books/{id}` (ต้องมี token)
+
+## วิธี Generate เอกสาร API (Swagger)
+
+โปรเจกต์ใช้ annotation ในโค้ดภายใต้โฟลเดอร์ `app/` เพื่อ generate เอกสาร
+
+1) สร้างไฟล์ docs
+
+```bash
+php artisan l5-swagger:generate
+```
+
+2) เปิดหน้า Swagger UI
+
+```text
+/api/documentation
+```
+
+3) ไฟล์เอกสารที่ถูก generate จะอยู่ที่
+
+```text
+storage/api-docs/api-docs.json
+```
+
+หมายเหตุ:
+- ถ้าแก้ annotation แล้วหน้า Swagger ยังไม่อัปเดต ให้รัน `php artisan l5-swagger:generate` ซ้ำ
+- หากมี cache config ให้เคลียร์ด้วย `php artisan config:clear`
+
+## Logging
+
+ระบบแยก log รายวันออกเป็น 2 ไฟล์
+
+- Success log: `storage/logs/success-YYYY-MM-DD.log`
+- Error log: `storage/logs/error-YYYY-MM-DD.log`
+
+กำหนดจำนวนวันที่เก็บได้ด้วยค่า
+
+```env
+LOG_DAILY_DAYS=14
+```
+
+## คำสั่งที่ใช้บ่อย
+
+```bash
+php artisan config:clear
+php artisan route:list
+php artisan test
+```
