@@ -76,17 +76,24 @@
 
             const navList = document.querySelector('.navbar-nav.ms-auto');
             if (!navList) return;
+            const guestNavHtml = navList.innerHTML;
 
-            const cachedUser = (() => {
-                try {
-                    return JSON.parse(localStorage.getItem('api_user') || 'null');
-                } catch (err) {
-                    return null;
-                }
-            })();
+            function resetAuthState() {
+                localStorage.removeItem('api_token');
+                localStorage.removeItem('api_user');
+                navList.innerHTML = guestNavHtml;
+            }
+
+            function isValidUser(user) {
+                if (!user || typeof user !== 'object') return false;
+                return Boolean(
+                    (typeof user.name === 'string' && user.name.trim()) ||
+                    (typeof user.email === 'string' && user.email.trim())
+                );
+            }
 
             function renderUserNav(user) {
-                if (!user) return;
+                if (!isValidUser(user)) return;
                 navList.innerHTML = `
                     <li class="nav-item dropdown">
                         <a id="clientNavbarDropdown" class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -118,29 +125,26 @@
                 }
             }
 
-            if (cachedUser) {
-                renderUserNav(cachedUser);
-            }
-
             fetch('/api/me', {
                 headers: {
-                    'Authorization': 'Bearer ' + token
+                    'Authorization': 'Bearer ' + token,
+                    'Accept': 'application/json',
+                    'Cache-Control': 'no-store'
                 }
             }).then(async res => {
                 if (!res.ok) {
-                    if (res.status === 401) {
-                        localStorage.removeItem('api_token');
-                        localStorage.removeItem('api_user');
-                    }
+                    resetAuthState();
                     return;
                 }
                 const user = await res.json().catch(() => null);
-                if (!user) return;
+                if (!isValidUser(user)) {
+                    resetAuthState();
+                    return;
+                }
                 localStorage.setItem('api_user', JSON.stringify(user));
                 renderUserNav(user);
             }).catch(() => {
-                localStorage.removeItem('api_token');
-                localStorage.removeItem('api_user');
+                resetAuthState();
             });
 
             function escapeHtml(unsafe) {
