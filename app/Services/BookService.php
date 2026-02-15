@@ -26,7 +26,8 @@ class BookService
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
                     ->orWhere('author', 'like', "%{$search}%")
-                    ->orWhere('genre', 'like', "%{$search}%");
+                    ->orWhere('genre', 'like', "%{$search}%")
+                    ->orWhere('published_year', 'like', "%{$search}%");
             });
         }
 
