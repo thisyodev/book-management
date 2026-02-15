@@ -11,7 +11,7 @@
     <!-- Bootstrap CSS (CDN) -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Custom Bookstore CSS -->
-    <link rel="stylesheet" href="{{ asset('css/bookstore.css') }}">
+    <link rel="stylesheet" href="/css/bookstore.css">
 </head>
 
 <body>
@@ -30,12 +30,12 @@
                     @guest
                         @if (Route::has('login'))
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ route('login') }}">Login</a>
+                                <a class="nav-link" href="{{ route('login', absolute: false) }}">Login</a>
                             </li>
                         @endif
                         @if (Route::has('register'))
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ route('register') }}">Register</a>
+                                <a class="nav-link" href="{{ route('register', absolute: false) }}">Register</a>
                             </li>
                         @endif
                     @else

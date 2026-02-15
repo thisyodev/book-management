@@ -45,7 +45,8 @@
             data-bs-toggle="modal" data-bs-target="#addBookModal">
             + Add Book
         </button>
-        <a class="btn btn-primary {{ auth()->check() ? 'd-none' : '' }}" href="{{ route('login') }}" data-guest-only>Login
+        <a class="btn btn-primary {{ auth()->check() ? 'd-none' : '' }}" href="{{ route('login', absolute: false) }}"
+            data-guest-only>Login
             to Add</a>
     </div>
 
