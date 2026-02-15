@@ -19,7 +19,7 @@ class BookService
      */
     public function getBooksPaginated(Request $request, int $perPage = 10): LengthAwarePaginator
     {
-        $query = Book::query()->select(['id', 'title', 'author', 'published_year', 'genre', 'created_at']);
+        $query = Book::query();
 
         if ($request->filled('search')) {
             $search = $request->input('search');
