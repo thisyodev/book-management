@@ -41,11 +41,12 @@
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>Books Library</h2>
-        <button type="button" class="btn btn-primary d-none" data-auth-only data-bs-toggle="modal"
-            data-bs-target="#addBookModal">
+        <button type="button" class="btn btn-primary {{ auth()->check() ? '' : 'd-none' }}" data-auth-only
+            data-bs-toggle="modal" data-bs-target="#addBookModal">
             + Add Book
         </button>
-        <a class="btn btn-primary" href="{{ route('login') }}" data-guest-only>Login to Add</a>
+        <a class="btn btn-primary {{ auth()->check() ? 'd-none' : '' }}" href="{{ route('login') }}" data-guest-only>Login
+            to Add</a>
     </div>
 
     @if (session('success'))
@@ -256,6 +257,8 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             hideSpinner();
+            const hasWebAuth = @json(auth()->check());
+            const apiToken = localStorage.getItem('api_token');
 
             function setAuthUi(isAuthed) {
                 document.querySelectorAll('[data-auth-only]').forEach(el => {
@@ -266,8 +269,7 @@
                 });
             }
 
-            setAuthUi(false);
-            const apiToken = localStorage.getItem('api_token');
+            setAuthUi(hasWebAuth || Boolean(apiToken));
             if (apiToken) {
                 fetch('/api/me', {
                     headers: {
@@ -284,8 +286,10 @@
                     }
                     setAuthUi(true);
                 }).catch(() => {
-                    setAuthUi(false);
+                    setAuthUi(hasWebAuth);
                 });
+            } else {
+                setAuthUi(hasWebAuth);
             }
 
             const addModalEl = document.getElementById('addBookModal');
