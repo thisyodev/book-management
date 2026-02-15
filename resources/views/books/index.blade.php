@@ -67,7 +67,7 @@
 
     <!-- Search & Filter Controls -->
     <div class="search-filter-panel mb-4">
-        <form method="GET" action="{{ route('books.index') }}" class="search-filter-form">
+        <form method="GET" action="{{ route('books.index', absolute: false) }}" class="search-filter-form">
             <div class="search-block">
                 <label class="filter-label-inline" for="searchInput">Search</label>
                 <div class="search-field">
