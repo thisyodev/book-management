@@ -16,17 +16,27 @@ services:
         sync: false
       - key: APP_KEY
         sync: false
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_URL
+        sync: false
+      - key: DB_SSLMODE
+        value: require
+      - key: DB_SCHEMA
+        value: laravel
       - key: JWT_SECRET
         sync: false
+      - key: L5_SWAGGER_GENERATE_ALWAYS
+        value: "false"
       - key: LOG_CHANNEL
         value: stack
       - key: LOG_DAILY_DAYS
         value: "14"
-      - key: DB_CONNECTION
-        value: pgsql
-      - key: DATABASE_URL
-        sync: false
-      - key: DB_SSLMODE
-        value: require
+      - key: SESSION_DRIVER
+        value: file
+      - key: CACHE_STORE
+        value: file
+      - key: QUEUE_CONNECTION
+        value: sync
       - key: RUN_MIGRATIONS
-        value: "true"
+        value: "false"
