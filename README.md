@@ -115,7 +115,7 @@ storage/api-docs/api-docs.json
 - `ASSET_URL` = URL เดียวกับ `APP_URL`
 - `APP_KEY` = ผลลัพธ์จาก `php artisan key:generate --show`
 - `JWT_SECRET` = secret สำหรับ jwt-auth
-- `DATABASE_URL` = Supabase Postgres connection string (ต้องมี `sslmode=require`)
+- `DB_URL` = Supabase Postgres connection string (ต้องมี `sslmode=require`)
 
 4) Deploy
 - ระบบจะ build image จาก Dockerfile
@@ -125,6 +125,19 @@ storage/api-docs/api-docs.json
 
 ```text
 postgresql://USER:PASSWORD@HOST:5432/postgres?sslmode=require
+```
+
+ค่าที่แนะนำสำหรับ API performance บน Render:
+
+```env
+API_BOOKS_CACHE_TTL=60
+API_LOG_SUCCESS=false
+```
+
+หากเพิ่ม Redis ในอนาคต แนะนำเปลี่ยน:
+
+```env
+CACHE_STORE=redis
 ```
 
 ### หมายเหตุ

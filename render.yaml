@@ -32,6 +32,10 @@ services:
         value: stack
       - key: LOG_DAILY_DAYS
         value: "14"
+      - key: API_BOOKS_CACHE_TTL
+        value: "60"
+      - key: API_LOG_SUCCESS
+        value: "false"
       - key: SESSION_DRIVER
         value: file
       - key: CACHE_STORE
