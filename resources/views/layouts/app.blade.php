@@ -112,7 +112,7 @@
                         } catch (err) {}
                         localStorage.removeItem('api_token');
                         localStorage.removeItem('api_user');
-                        window.location.href = '/book';
+                        window.location.href = '/books';
                     });
                 }
             }

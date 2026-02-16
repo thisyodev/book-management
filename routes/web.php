@@ -3,8 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Web\BookController;
 
-// Redirect root to web login
-Route::redirect('/', '/book');
+// Redirect root to books index
+Route::redirect('/', '/books');
 
 // Web login/register pages that use API auth
 Route::get('/login', function () {
@@ -17,8 +17,5 @@ Route::get('/register', function () {
 
 // Server-side book management (no auth required for now)
 Route::resource('books', BookController::class);
-
-// Friendly alias for books index
-Route::get('/book', [BookController::class, 'index']);
 
 require __DIR__.'/auth.php';

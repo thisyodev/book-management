@@ -57,7 +57,8 @@ php artisan serve
 
 ## เส้นทางหลัก
 
-- Web: `/book`
+- Web: `/books`
+- Root (`/`) จะ redirect ไป `/books`
 - Login: `/login`
 - Register: `/register`
 - Swagger: `/api/documentation`
@@ -88,3 +89,4 @@ storage/api-docs/api-docs.json
 LOG_DAILY_DAYS=14
 API_LOG_SUCCESS=false
 ```
+

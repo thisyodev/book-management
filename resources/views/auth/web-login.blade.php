@@ -114,7 +114,7 @@
                     }
 
                     showSuccess('Logged in successfully. Redirecting to books...');
-                    setTimeout(() => window.location.href = '/book', 900);
+                    setTimeout(() => window.location.href = '/books', 900);
                 } catch (err) {
                     showError(err.message || 'Login error');
                 }
