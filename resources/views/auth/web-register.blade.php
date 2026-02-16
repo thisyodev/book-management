@@ -35,7 +35,6 @@
                 </form>
 
                 <div class="auth-divider"></div>
-                <div class="small text-muted">By registering, you will receive an API token for this session.</div>
             </div>
         </div>
     </div>

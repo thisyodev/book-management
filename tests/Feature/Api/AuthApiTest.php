@@ -52,6 +52,24 @@ class AuthApiTest extends TestCase
             ]);
     }
 
+    public function test_register_rejects_duplicate_name(): void
+    {
+        User::factory()->create([
+            'name' => 'API User',
+            'email' => 'existing-user@example.com',
+        ]);
+
+        $response = $this->postJson('/api/register', [
+            'name' => 'API User',
+            'email' => 'new-user@example.com',
+            'password' => 'secret123',
+        ]);
+
+        $response
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['name']);
+    }
+
     public function test_me_returns_authenticated_user_with_valid_token(): void
     {
         $user = User::factory()->create([
